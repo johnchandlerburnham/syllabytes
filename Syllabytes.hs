@@ -5,29 +5,45 @@ import           Data.Char
 import           Numeric
 import Text.ParserCombinators.ReadP
 
---main :: IO ()
---main = do
---  traverse (putStrLn . syllabytes) d8
---  traverse (putStrLn . syllabytes) d40
---  return ()
+main :: IO ()
+main = do
+  traverse (\x -> putStrLn $ concat ["0x",showHex x "",": ", syllabytes x]) d8
+  traverse (\x -> putStrLn $ concat ["0x",showHex x "",": ", syllabytes x]) d40
+  return ()
 
 syll :: [String]
-syll = [  "a",  "an",  "i",  "in",  "u",  "un",  "e",  "en",  "o",  "on",  "ya",  "yan",  "yu",  "yun",  "yo",  "yon"
-       , "ka", "kan", "ki", "kin", "ku", "kun", "ke", "ken", "ko", "kon", "kya", "kyan", "kyu", "kyun", "kyo", "kyon"
-       , "sa", "san", "si", "sin", "su", "sun", "se", "sen", "so", "son", "sha", "shan", "shu", "shun", "sho", "shon"
-       , "ta", "tan", "ti", "tin", "tu", "tun", "te", "ten", "to", "ton", "cha", "chan", "chu", "chun", "cho", "chon"
-       , "na", "nan", "ni", "nin", "nu", "nun", "ne", "nen", "no", "non", "nya", "nyan", "nyu", "nyun", "nyo", "nyon"
-       , "ha", "han", "hi", "hin", "hu", "hun", "he", "hen", "ho", "hon", "hya", "hyan", "hyu", "hyun", "hyo", "hyon"
-       , "fa", "fan", "fi", "fin", "fu", "fun", "fe", "fen", "fo", "fon", "fya", "fyan", "fyu", "fyun", "fyo", "fyon"
-       , "ma", "man", "mi", "min", "mu", "mun", "me", "men", "mo", "mon", "mya", "myan", "myu", "myun", "myo", "myon"
-       , "ra", "ran", "ri", "rin", "ru", "run", "re", "ren", "ro", "ron", "rya", "ryan", "ryu", "ryun", "ryo", "ryon"
-       , "ga", "gan", "gi", "gin", "gu", "gun", "ge", "gen", "go", "gon", "gya", "gyan", "gyu", "gyun", "gyo", "gyon"
-       , "za", "zan", "zi", "zin", "zu", "zun", "ze", "zen", "zo", "zon", "zya", "zyan", "zyu", "zyun", "zyo", "zyon"
-       , "da", "dan", "di", "din", "du", "dun", "de", "den", "do", "don", "dya", "dyan", "dyu", "dyun", "dyo", "dyon"
-       , "ja", "jan", "ji", "jin", "ju", "jun", "je", "jen", "jo", "jon", "jya", "jyan", "jyu", "jyun", "jyo", "jyon"
-       , "ba", "ban", "bi", "bin", "bu", "bun", "be", "ben", "bo", "bon", "bya", "byan", "byu", "byun", "byo", "byon"
-       , "pa", "pan", "pi", "pin", "pu", "pun", "pe", "pen", "po", "pon", "pya", "pyan", "pyu", "pyun", "pyo", "pyon"
-       , "wa", "wan", "wi", "win", "wu", "wun", "we", "wen", "wo", "won", "wya", "wyan", "wyu", "wyun", "wyo", "wyon"
+syll = [  "a",  "an",  "i",  "in",  "u",  "un",  "e",  "en"
+         ,  "o",  "on",  "ya",  "yan",  "yu",  "yun",  "yo",  "yon"
+       , "ka", "kan", "ki", "kin", "ku", "kun", "ke", "ken"
+         , "ko", "kon", "kya", "kyan", "kyu", "kyun", "kyo", "kyon"
+       , "sa", "san", "shi", "shin", "su", "sun", "se", "sen"
+         , "so", "son", "sha", "shan", "shu", "shun", "sho", "shon"
+       , "ta", "tan", "chi", "chin", "tsu", "tsun", "te", "ten"
+         ,"to", "ton", "cha", "chan", "chu", "chun", "cho", "chon"
+       , "na", "nan", "ni", "nin", "nu", "nun", "ne", "nen"
+         , "no", "non", "nya", "nyan", "nyu", "nyun", "nyo", "nyon"
+       , "ha", "han", "hi", "hin", "hu", "hun", "he", "hen"
+         , "ho", "hon", "hya", "hyan", "hyu", "hyun", "hyo", "hyon"
+       , "fa", "fan", "fi", "fin", "fu", "fun", "fe", "fen"
+         , "fo", "fon", "fya", "fyan", "fyu", "fyun", "fyo", "fyon"
+       , "ma", "man", "mi", "min", "mu", "mun", "me", "men"
+         , "mo", "mon", "mya", "myan", "myu", "myun", "myo", "myon"
+       , "ra", "ran", "ri", "rin", "ru", "run", "re", "ren"
+         , "ro", "ron", "rya", "ryan", "ryu", "ryun", "ryo", "ryon"
+       , "ga", "gan", "gi", "gin", "gu", "gun", "ge", "gen"
+         , "go", "gon", "gya", "gyan", "gyu", "gyun", "gyo", "gyon"
+       , "za", "zan", "zi", "zin", "zu", "zun", "ze", "zen"
+         , "zo", "zon", "zya", "zyan", "zyu", "zyun", "zyo", "zyon"
+       , "da", "dan", "di", "din", "du", "dun", "de", "den"
+         , "do", "don", "dya", "dyan", "dyu", "dyun", "dyo", "dyon"
+       , "ja", "jan", "ji", "jin", "ju", "jun", "je", "jen"
+         , "jo", "jon", "jya", "jyan", "jyu", "jyun", "jyo", "jyon"
+       , "ba", "ban", "bi", "bin", "bu", "bun", "be", "ben"
+         , "bo", "bon", "bya", "byan", "byu", "byun", "byo", "byon"
+       , "pa", "pan", "pi", "pin", "pu", "pun", "pe", "pen"
+         , "po", "pon", "pya", "pyan", "pyu", "pyun", "pyo", "pyon"
+       , "wa", "wan", "wi", "win", "wu", "wun", "we", "wen"
+         , "wo", "won", "wya", "wyan", "wu", "wyun", "wyo", "wyon"
        ]
 
 read_syll :: [ReadP Integer]
@@ -62,9 +78,6 @@ syllabyte_go n b
   | otherwise = syllabyte_go (n `rsh` 8) (not b) ++ (syll !! x)
   where
     x = fromIntegral $ n .&. (2^8 - 1)
-
-
-
 
 d40 = [ 0x334820d375f6b485a034911a386644faf7d9b259
       , 0x84295d5e054d8cff5a22428b195f5a1615bd644f
