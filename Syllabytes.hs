@@ -3,6 +3,7 @@ module Syllabytes where
 import           Data.Bits
 import           Data.Char
 import           Numeric
+import Text.ParserCombinators.ReadP
 
 --main :: IO ()
 --main = do
@@ -29,6 +30,21 @@ syll = [  "a",  "an",  "i",  "in",  "u",  "un",  "e",  "en",  "o",  "on",  "ya",
        , "wa", "wan", "wi", "win", "wu", "wun", "we", "wen", "wo", "won", "wya", "wyan", "wyu", "wyun", "wyo", "wyon"
        ]
 
+read_syll :: [ReadP Integer]
+read_syll = (\(x,y) -> string x >> pure y) <$> (zip syll [0..256])
+
+read_syllabytes :: ReadP [Integer]
+read_syllabytes = many $ choice read_syll
+
+from_syllabytes :: String -> Integer
+from_syllabytes = go . fst . head . reverse . readP_to_S read_syllabytes
+  where
+    go = int_from_bytes . reverse
+
+int_from_bytes :: [Integer] -> Integer
+int_from_bytes (x:[]) = x
+int_from_bytes (x:xs) = x + (lsh (int_from_bytes xs) 8)
+
 showBin :: (Show a, Integral a) => a -> String
 showBin a = showIntAtBase 2 intToDigit a ""
 
@@ -46,6 +62,9 @@ syllabyte_go n b
   | otherwise = syllabyte_go (n `rsh` 8) (not b) ++ (syll !! x)
   where
     x = fromIntegral $ n .&. (2^8 - 1)
+
+
+
 
 d40 = [ 0x334820d375f6b485a034911a386644faf7d9b259
       , 0x84295d5e054d8cff5a22428b195f5a1615bd644f
