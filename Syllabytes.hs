@@ -8,64 +8,205 @@ import Text.ParserCombinators.ReadP
 
 main :: IO ()
 main = do
-  traverse (\x -> putStrLn $ concat ["0x",showHex x "",": ", syllabytes x]) d8
-  traverse (\x -> putStrLn $ concat ["0x",showHex x "",": ", syllabytes x]) d40
+  traverse test_syllabytes d8
+  traverse test_syllabytes d40
   return ()
 
+print_syllabytes :: Integer -> IO ()
+print_syllabytes n = do
+  putStrLn $ concat 
+    ["0x",showHex n "",":\n  "
+    , syllabytes n, "\n  "
+    , syllabytes_jp n, "\n"
+    ]
+
+test_syllabytes :: Integer -> IO ()
+test_syllabytes n = do
+  let s = syllabytes n
+  let n' = from_syllabytes s
+  let s' = syllabytes n'
+  let sj = syllabytes_jp n
+  let nj' = from_syllabytes_jp sj
+  let sj' = syllabytes_jp nj'
+  if n  == n' &&
+     s  == s' &&
+     sj == sj' &&
+     n == nj'
+  then
+    print_syllabytes n
+  else
+   putStrLn $ concat
+    ["BAD:\n"
+    ,"  n =  0x", showHex n "","\n"
+    ,"  syllabytes(n) = ", s,"\n"
+    ,"  syllabytes_jp(n) = ", sj, "\n"
+    ,"  from_syllabytes(syllabytes(n)) = 0x", showHex n' "", "\n"
+    ,"  syllabytes(from_syllabytes(syllabytes(n)) = ", s', "\n"
+    ,"  from_syllabytes_jp(syllabytes_jp(n)) = 0x", showHex nj' "", "\n"
+    ,"  syllabytes_jp(from_syllabytes_jp(syllabytes_jp(n)) = ", s', "\n"
+    ]
+
 syll :: [String]
-syll = [  "a",  "an",  "i",  "in",  "u",  "un",  "e",  "en" ,  "o",  "on",  "ya",  "yan",  "yu",  "yun",  "yo",  "yon"
-       , "ka", "kan", "ki", "kin", "ku", "kun", "ke", "ken" , "ko", "kon", "kya", "kyan", "kyu", "kyun", "kyo", "kyon"
-       , "sa", "san", "shi", "shin", "su", "sun", "se", "sen" , "so", "son", "sha", "shan", "shu", "shun", "sho", "shon"
-       , "ta", "tan", "chi", "chin", "tsu", "tsun", "te", "ten" ,"to", "ton", "cha", "chan", "chu", "chun", "cho", "chon"
-       , "na", "nan", "ni", "nin", "nu", "nun", "ne", "nen" , "no", "non", "nya", "nyan", "nyu", "nyun", "nyo", "nyon"
-       , "ha", "han", "hi", "hin", "hu", "hun", "he", "hen" , "ho", "hon", "hya", "hyan", "hyu", "hyun", "hyo", "hyon"
-       , "fa", "fan", "fi", "fin", "fu", "fun", "fe", "fen" , "fo", "fon", "fya", "fyan", "fyu", "fyun", "fyo", "fyon"
-       , "ma", "man", "mi", "min", "mu", "mun", "me", "men" , "mo", "mon", "mya", "myan", "myu", "myun", "myo", "myon"
-       , "ra", "ran", "ri", "rin", "ru", "run", "re", "ren" , "ro", "ron", "rya", "ryan", "ryu", "ryun", "ryo", "ryon"
-       , "ga", "gan", "gi", "gin", "gu", "gun", "ge", "gen" , "go", "gon", "gya", "gyan", "gyu", "gyun", "gyo", "gyon"
-       , "za", "zan", "zi", "zin", "zu", "zun", "ze", "zen" , "zo", "zon", "zya", "zyan", "zyu", "zyun", "zyo", "zyon"
-       , "da", "dan", "di", "din", "du", "dun", "de", "den" , "do", "don", "dya", "dyan", "dyu", "dyun", "dyo", "dyon"
-       , "ja", "jan", "ji", "jin", "ju", "jun", "je", "jen" , "jo", "jon", "jya", "jyan", "jyu", "jyun", "jyo", "jyon"
-       , "ba", "ban", "bi", "bin", "bu", "bun", "be", "ben" , "bo", "bon", "bya", "byan", "byu", "byun", "byo", "byon"
-       , "pa", "pan", "pi", "pin", "pu", "pun", "pe", "pen" , "po", "pon", "pya", "pyan", "pyu", "pyun", "pyo", "pyon"
-       , "wa", "wan", "wi", "win", "wu", "wun", "we", "wen" , "wo", "won", "wya", "wyan", "wu", "wyun", "wyo", "wyon"
-       ]
+syll = riffle syll0 syll1
 
-read_syll :: [ReadP Integer]
-read_syll = (\(x,y) -> string x >> pure y) <$> (zip syll [0..256])
+syll_jp :: [String]
+syll_jp = riffle syll_jp0 syll_jp1
 
-read_syllabytes :: ReadP [Integer]
-read_syllabytes = many $ choice read_syll
+riffle :: [a] -> [a] -> [a]
+riffle [] _ = []
+riffle (x:xs) (y:ys) = x:y:(riffle xs ys)
 
-from_syllabytes :: String -> Integer
-from_syllabytes = go . fst . head . reverse . readP_to_S read_syllabytes
-  where
-    go = int_from_bytes . reverse
+syll0 =
+  [  "a",  "i",   "u",   "e",  "o",  "ya",  "yu",  "yo"
+  , "ka",  "ki",  "ku", "ke", "ko", "kya", "kyu", "kyo"
+  , "sa", "shi",  "su", "se", "so", "sha", "shu", "sho"
+  , "ta", "chi", "tsu", "te", "to", "cha", "chu", "cho"
+  , "na",  "ni",  "nu", "ne", "no", "nya", "nyu", "nyo"
+  , "ha",  "hi",  "hu", "he", "ho", "hya", "hyu", "hyo"
+  , "fa",  "fi",  "fu", "fe", "fo", "fya", "fyu", "fyo"
+  , "ma",  "mi",  "mu", "me", "mo", "mya", "myu", "myo"
+  , "ra",  "ri",  "ru", "re", "ro", "rya", "ryu", "ryo"
+  , "ga",  "gi",  "gu", "ge", "go", "gya", "gyu", "gyo"
+  , "za",  "zi",  "zu", "ze", "zo",  "ja",  "ju",  "jo"
+  , "da",  "di",  "du", "de", "do", "dya", "dyu", "dyo"
+  , "ba",  "bi",  "bu", "be", "bo", "bya", "byu", "byo"
+  , "pa",  "pi",  "pu", "pe", "po", "pya", "pyu", "pyo"
+  , "wa",  "wi",  "wu", "we", "wo", "wya", "wyu", "wyo"
+  , "va",  "vi",  "vu", "ve", "vo", "vya", "vyu", "vyo"
+  ]
 
-int_from_bytes :: [Integer] -> Integer
-int_from_bytes (x:[]) = x
-int_from_bytes (x:xs) = x + (lsh (int_from_bytes xs) 8)
+syll1 =
+  [  "an",  "in",    "un",  "en",  "on",  "yan",  "yun",  "yon"
+  , "kan",  "kin",  "kun", "ken", "kon", "kyan", "kyun", "kyon"
+  , "san", "shin",  "sun", "sen", "son", "shan", "shun", "shon"
+  , "tan", "chin", "tsun", "ten", "ton", "chan", "chun", "chon"
+  , "nan",  "nin",  "nun", "nen", "non", "nyan", "nyun", "nyon"
+  , "han",  "hin",  "hun", "hen", "hon", "hyan", "hyun", "hyon"
+  , "fan",  "fin",  "fun", "fen", "fon", "fyan", "fyun", "fyon"
+  , "man",  "min",  "mun", "men", "mon", "myan", "myun", "myon"
+  , "ran",  "rin",  "run", "ren", "ron", "ryan", "ryun", "ryon"
+  , "gan",  "gin",  "gun", "gen", "gon", "gyan", "gyun", "gyon"
+  , "zan",  "zin",  "zun", "zen", "zon",  "jan",  "jun", "jon"
+  , "dan",  "din",  "dun", "den", "don", "dyan", "dyun", "dyon"
+  , "ban",  "bin",  "bun", "ben", "bon", "byan", "byun", "byon"
+  , "pan",  "pin",  "pun", "pen", "pon", "pyan", "pyun", "pyon"
+  , "wan",  "win",  "wun", "wen", "won", "wyan", "wyun", "wyon"
+  , "van",  "vin",  "vun", "ven", "von", "vyan", "vyun", "vyon"
+  ]
 
---split :: String -> Char -> [String]
---split s d = words $ (\x -> if x == d then '\n' else x) <$> s
+syll_jp0 =
+  [  "ア",  "イ",    "ウ",  "エ",  "オ",  "ヤ",  "ユ",  "ヨ"
+  ,  "カ",  "キ",    "ク",  "ケ",  "コ","キャ","キュ","キョ"
+  ,  "サ",  "シ",    "ス",  "セ",  "ソ","シャ","シュ","ショ"
+  ,  "タ",  "チ",    "ツ",  "テ",  "ト","チャ","チュ","チョ"
+  ,  "ナ",  "ニ",    "ヌ",  "ネ",  "ノ","ニャ","ニュ","ニョ"
+  ,  "ハ",  "ヒ",  "ホゥ",  "ヘ",  "ホ","ヒャ","ヒュ","ヒョ"
+  ,"ファ","フィ",    "フ","フェ","フォ","フャ","フュ","フョ"
+  ,  "マ",  "ミ",    "ム",  "メ",  "モ","ミャ","ミュ","ミョ"
+  ,  "ラ",  "リ",    "ル",  "レ",  "ロ","リャ","リュ","リョ"
+  ,  "ガ",  "ギ",    "グ",  "ゲ",  "ゴ","ギャ","ギュ","ギョ"
+  ,  "ザ",  "ジ",    "ズ",  "ゼ",  "ゾ","ジャ","ジュ","ジョ"
+  ,  "ダ",  "ヂ",    "ヅ",  "デ",  "ド","ヂャ","ヂュ","ヂョ"
+  ,  "バ",  "ビ",    "ブ",  "ベ",  "ボ","ビャ","ビュ","ビョ"
+  ,  "パ",  "ピ",    "プ",  "ペ",  "ポ","ピャ","ピュ","ピョ"
+  ,  "ワ",  "ヰ",  "ウゥ",  "ヱ",  "ヲ","ウャ","ウュ","ウョ"
+  ,  "ヷ",  "ヸ",    "ヴ",  "ヹ",  "ヺ","ヴャ","ヴュ","ヴョ"
+  ]
+
+syll_jp1 =
+  [  "アン",  "イン",    "ウン",  "エン",  "オン",  "ヤン",  "ユン",  "ヨン"
+  ,  "カン",  "キン",    "クン",  "ケン",  "コン","キャン","キュン","キョン"
+  ,  "サン",  "シン",    "スン",  "セン",  "ソン","シャン","シュン","ション"
+  ,  "タン",  "チン",    "ツン",  "テン",  "トン","チャン","チュン","チョン"
+  ,  "ナン",  "ニン",    "ヌン",  "ネン",  "ノン","ニャン","ニュン","ニョン"
+  ,  "ハン",  "ヒン",  "ホゥン",  "ヘン",  "ホン","ヒャン","ヒュン","ヒョン"
+  ,"ファン","フィン",    "フン","フェン","フォン","フャン","フュン","フョン"
+  ,  "マン",  "ミン",    "ムン",  "メン",  "モン","ミャン","ミュン","ミョン"
+  ,  "ラン",  "リン",    "ルン",  "レン",  "ロン","リャン","リュン","リョン"
+  ,  "ガン",  "ギン",    "グン",  "ゲン",  "ゴン","ギャン","ギュン","ギョン"
+  ,  "ザン",  "ジン",    "ズン",  "ゼン",  "ゾン","ジャン","ジュン","ジョン"
+  ,  "ダン",  "ヂン",    "ヅン",  "デン",  "ドン","ヂャン","ヂュン","ヂョン"
+  ,  "バン",  "ビン",    "ブン",  "ベン",  "ボン","ビャン","ビュン","ビョン"
+  ,  "パン",  "ピン",    "プン",  "ペン",  "ポン","ピャン","ピュン","ピョン"
+  ,  "ワン",  "ヰン",  "ウゥン",  "ヱン",  "ヲン","ウャン","ウュン","ウョン"
+  ,  "ヷン",  "ヸン",    "ヴン",  "ヹン",  "ヺン","ヴャン","ヴュン","ヴョン"
+  ]
+
 
 showBin :: (Show a, Integral a) => a -> String
 showBin a = showIntAtBase 2 intToDigit a ""
 
-lsh :: Integer -> Int -> Integer
-lsh x n = shift x n
+lsh :: Int -> Integer -> Integer
+lsh n x = shift x n
 
-rsh :: Integer -> Int -> Integer
-rsh x n = shift x (negate n)
+rsh :: Int -> Integer -> Integer
+rsh n x = shift x (negate n)
 
-syllabytes n = syllabyte_go n False
+from_bytes :: [Int] -> Integer
+from_bytes (x:[]) = fromIntegral $ x
+from_bytes (x:xs) = fromIntegral x + (lsh 8 (from_bytes xs))
 
-syllabyte_go :: Integer -> Bool -> String
-syllabyte_go n b
-  | n <= 255 = (syll !! x)
-  | otherwise = syllabyte_go (n `rsh` 8) (not b) ++ (syll !! x)
+to_bytes :: Integer -> [Int]
+to_bytes n
+  | n == 0 = [0]
+  | n < 256 = [fromIntegral n]
+  | otherwise = (fromIntegral $ n .&. (2^8 - 1)) : (to_bytes (rsh 8 n))
+
+isVowel :: Int -> Bool
+isVowel n = n >= 0 && n <= 16
+
+isN :: Int -> Bool
+isN n = n `mod` 2 == 1
+
+syllabytes :: Integer -> String
+syllabytes n = go bytes ""
   where
-    x = fromIntegral $ n .&. (2^8 - 1)
+    bytes = to_bytes n
+    go :: [Int] -> String -> String
+    go (a:b:xs) s
+      | isVowel a && isN b = go (b:xs) ("'" ++ (syll !! a) ++ s)
+      | otherwise = go (b:xs) ((syll !! a) ++ s)
+    go (a:[]) s = (syll !! a) ++ s
+    go [] s = s
+
+syllabytes_jp :: Integer -> String
+syllabytes_jp n = go bytes ""
+  where
+    bytes = to_bytes n
+    go :: [Int] -> String -> String
+    go (a:b:xs) s
+      | isVowel a && isN b = go (b:xs) ((syll_jp !! a) ++ s)
+      | otherwise = go (b:xs) ((syll_jp !! a) ++ s)
+    go (a:[]) s = (syll_jp !! a) ++ s
+    go [] s = s
+
+split :: (Char -> Bool) -> String -> [String]
+split f s = lines $ (\x -> if f x then '\n' else x) <$> s
+
+sanitize :: String -> [String]
+sanitize s = filter (\x -> x /= "") $ split (not . isAsciiLower) (toLower <$> s)
+
+read_syll :: [ReadP Int]
+read_syll = (\(x,y) -> string x >> pure y) <$> (zip syll [0..256])
+
+read_syllabytes :: ReadP [Int]
+read_syllabytes = (many $ choice $ reverse $ read_syll)
+
+from_syllabytes :: String -> Integer
+from_syllabytes s = from_bytes $ reverse $ concatMap id $ parse <$> (sanitize s)
+  where
+    parse = fst .last . readP_to_S read_syllabytes
+
+read_syll_jp :: [ReadP Int]
+read_syll_jp = (\(x,y) -> string x >> pure y) <$> (zip syll_jp [0..256])
+
+read_syllabytes_jp :: ReadP [Int]
+read_syllabytes_jp = (many $ choice $ reverse $ read_syll_jp)
+
+from_syllabytes_jp :: String -> Integer
+from_syllabytes_jp s = from_bytes $ reverse $ parse s
+  where
+    parse = fst .last . readP_to_S read_syllabytes_jp
 
 d40 = [ 0x334820d375f6b485a034911a386644faf7d9b259
       , 0x84295d5e054d8cff5a22428b195f5a1615bd644f
